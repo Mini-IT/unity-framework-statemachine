@@ -1,0 +1,19 @@
+{
+	"name": "com.miniit.framework.statemachine",
+	"version": "1.0.0",
+	"dependencies": {
+		"com.miniit.dicontainer": "2.0.0",
+		"com.cysharp.unitask": "2.3.0"
+	},
+	"unity": "2021.3",
+	"author": {
+		"name": "Mini IT",
+		"url": "http://snipeserver.com"
+	},
+	"displayName": "Mini IT Framework - State Machine",
+	"keywords": [
+		"MiniIT",
+		"StateMachine"
+	],
+	"description": "Mini IT Framework - State Machine"
+}
