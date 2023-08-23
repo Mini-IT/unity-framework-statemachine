@@ -335,7 +335,6 @@ namespace StateMachine
             /// </summary>
             /// <param name="trigger">Trigger that will "trigger" transition</param>
             /// <returns>Configuration for the same state</returns>
-            /// <exception cref="ArgumentException"></exception>
             public StateConfiguration AllowTransition(TTrigger trigger)
             {
                 _stateMachine.AllowTransition(_trigger, trigger);
