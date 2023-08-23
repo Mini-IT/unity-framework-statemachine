@@ -1,23 +1,45 @@
 using Cysharp.Threading.Tasks;
+using System;
 using System.Threading;
 
 namespace StateMachine
 {
-    public abstract class StateBase : IPureState
+    public class StateBase : IPureState, IDisposable
     {
-        public abstract UniTask OnBeforeEnter(CancellationToken cancellationToken);
-        public abstract UniTask OnEnter(CancellationToken cancellationToken);
+        public virtual UniTask OnBeforeEnter(CancellationToken cancellationToken)
+        {
+            return UniTask.CompletedTask;
+        }
 
-        public abstract UniTask OnBeforeExit(CancellationToken cancellationToken);
-        public abstract UniTask OnExit(CancellationToken cancellationToken);
+        public virtual UniTask OnEnter(CancellationToken cancellationToken)
+        {
+            return UniTask.CompletedTask;
+        }
 
-        public abstract void Dispose();
+        public virtual UniTask OnBeforeExit(CancellationToken cancellationToken)
+        {
+            return UniTask.CompletedTask;
+        }
+
+        public virtual UniTask OnExit(CancellationToken cancellationToken)
+        {
+            return UniTask.CompletedTask;
+        }
+
+        public virtual void Dispose() { }
     }
 
-    public abstract class StateBase<TPayload> : StateBase, IPayloadedState<TPayload>
+    public class StateBase<TPayload> : StateBase, IPayloadedState<TPayload>
     {
-        public abstract UniTask OnBeforeEnter(TPayload payload, CancellationToken cancellationToken);
-        public abstract UniTask OnEnter(TPayload payload, CancellationToken cancellationToken);
+        public virtual UniTask OnBeforeEnter(TPayload payload, CancellationToken cancellationToken)
+        {
+            return UniTask.CompletedTask;
+        }
+
+        public virtual UniTask OnEnter(TPayload payload, CancellationToken cancellationToken)
+        {
+            return UniTask.CompletedTask;
+        }
 
         public sealed override UniTask OnEnter(CancellationToken cancellationToken)
         {

@@ -1,10 +1,9 @@
 using Cysharp.Threading.Tasks;
-using System;
 using System.Threading;
 
 namespace StateMachine
 {
-    public interface IState : IDisposable
+    public interface IState
     {
         UniTask OnBeforeExit(CancellationToken cancellationToken);
         UniTask OnExit(CancellationToken cancellationToken);
