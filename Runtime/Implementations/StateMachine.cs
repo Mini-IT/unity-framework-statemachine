@@ -331,7 +331,7 @@ namespace StateMachine
             }
 
             /// <summary>
-            /// Allow transition to the new state by trigger and state type
+            /// Allow transition to the new state by its trigger
             /// </summary>
             /// <param name="trigger">Trigger that will "trigger" transition</param>
             /// <returns>Configuration for the same state</returns>
