@@ -53,7 +53,7 @@ namespace StateMachine
         }
 
         /// <inheritdoc cref="IStateMachine{TTrigger}.AllowTransition(TTrigger, TTrigger)"/>
-        public StateMachine<TTrigger>.StateConfiguration AllowTransition(TTrigger from, TTrigger to)
+        public StateConfiguration AllowTransition(TTrigger from, TTrigger to)
         {
             var configuration = new StateConfiguration(this, from);
 
@@ -74,7 +74,7 @@ namespace StateMachine
         }
 
         /// <inheritdoc cref="IStateMachine{TTrigger}.AllowTransitions(TTrigger, TTrigger)"/>
-        public StateMachine<TTrigger>.StateConfiguration AllowTransitions(TTrigger from, TTrigger[] to)
+        public StateConfiguration AllowTransitions(TTrigger from, TTrigger[] to)
         {
             if (!_transitions.TryGetValue(from, out var transitions))
             {
@@ -165,9 +165,9 @@ namespace StateMachine
             // Notify the states that their states are going to change
             if (CurrentState != null)
             {
-                await CurrentState.OnPreExit(cancellationToken);
+                await CurrentState.OnBeforeExit(cancellationToken);
             }
-            await pureState.OnPreEnter(cancellationToken);
+            await pureState.OnBeforeEnter(cancellationToken);
 
             // Exit the previous state
             await ExitCurrentState(stateType, cancellationToken);
@@ -203,9 +203,9 @@ namespace StateMachine
             // Notify the states that their states are going to change
             if (CurrentState != null)
             {
-                await CurrentState.OnPreExit(cancellationToken);
+                await CurrentState.OnBeforeExit(cancellationToken);
             }
-            await payloadState.OnPreEnter(payload, cancellationToken);
+            await payloadState.OnBeforeEnter(payload, cancellationToken);
 
             // Exit the previous state
             await ExitCurrentState(stateType, cancellationToken);
