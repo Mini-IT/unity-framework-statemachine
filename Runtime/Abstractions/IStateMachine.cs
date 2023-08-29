@@ -7,6 +7,7 @@ namespace StateMachine
     public interface IStateMachine<TTrigger> : IDisposable where TTrigger : Enum
     {
         IState CurrentState { get; }
+        TTrigger CurrentTrigger { get; }
 
         void SubscribeOnStateChanged(Action<IState> callback);
         void UnsubscribeOnStateChanged(Action<IState> callback);

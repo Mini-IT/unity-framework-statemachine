@@ -20,6 +20,7 @@ namespace StateMachine
         private Action<IState> _onStateChanged;
         private int _scope;
         public IState CurrentState { get; private set; }
+        public TTrigger CurrentTrigger { get; private set; }
 
         public StateMachine(IFactoryService<IState> stateStateFactory, IScopeManager scopeManager)
         {
@@ -153,7 +154,7 @@ namespace StateMachine
             }
         }
         
-        private async UniTask Enter(Type stateType, CancellationToken cancellationToken)
+        private async UniTask Enter(TTrigger trigger, Type stateType, CancellationToken cancellationToken)
         {
             // Create a new scope
             var newScope = _scopeManager.CreateScope();
@@ -175,6 +176,7 @@ namespace StateMachine
             // Switch to the new scope and state
             _scope = newScope;
             CurrentState = state;
+            CurrentTrigger = trigger;
 
             foreach (var stateMachineHook in _hooks)
             {
@@ -191,7 +193,7 @@ namespace StateMachine
             _onStateChanged?.Invoke(CurrentState);
         }
 
-        private async UniTask Enter<TPayload>(Type stateType, TPayload payload, CancellationToken cancellationToken)
+        private async UniTask Enter<TPayload>(TTrigger trigger, Type stateType, TPayload payload, CancellationToken cancellationToken)
         {
             // Create a new scope
             var newScope = _scopeManager.CreateScope();
@@ -213,6 +215,7 @@ namespace StateMachine
             // Switch to the new scope and state
             _scope = newScope;
             CurrentState = payloadState;
+            CurrentTrigger = trigger;
 
             foreach (var stateMachineHook in _hooks)
             {
@@ -259,9 +262,10 @@ namespace StateMachine
         {
             var type = VerifyAndReturnStateType(trigger);
 
-            if (type == null) return;
-            
-            await Enter(type, cancellationToken);
+            if (type != null)
+            {
+                await Enter(trigger, type, cancellationToken);
+            }
         }
 
         private async UniTask FireInternal<TPayload>(TTrigger trigger, TPayload payload,
@@ -269,9 +273,10 @@ namespace StateMachine
         {
             var type = VerifyAndReturnStateType(trigger);
 
-            if (type == null) return;
-            
-            await Enter(type, payload, cancellationToken);
+            if (type != null)
+            {
+                await Enter(trigger, type, payload, cancellationToken);
+            }
         }
 
         private Type VerifyAndReturnStateType(TTrigger trigger)
