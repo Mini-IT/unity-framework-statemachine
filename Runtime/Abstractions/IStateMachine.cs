@@ -6,18 +6,18 @@ namespace StateMachine
 {
     public interface IStateMachine<TTrigger> : IDisposable where TTrigger : Enum
     {
-        IState CurrentState { get; }
+        IState<TTrigger> CurrentState { get; }
         TTrigger CurrentTrigger { get; }
 
-        void SubscribeOnStateChanged(Action<IState> callback);
-        void UnsubscribeOnStateChanged(Action<IState> callback);
+        void SubscribeOnStateChanged(Action<IState<TTrigger>> callback);
+        void UnsubscribeOnStateChanged(Action<IState<TTrigger>> callback);
 
         /// <summary>
         /// Rigister a new state
         /// </summary>
         /// <typeparam name="T">State type</typeparam>
         /// <returns></returns>
-        StateMachine<TTrigger>.StateConfiguration Register<T>(TTrigger trigger) where T : IState;
+        StateMachine<TTrigger>.StateConfiguration Register<T>(TTrigger trigger) where T : IState<TTrigger>;
 
         /// <summary>
         /// Registers a transision from one state to another

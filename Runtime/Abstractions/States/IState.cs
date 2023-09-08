@@ -1,23 +1,24 @@
 using Cysharp.Threading.Tasks;
+using System;
 using System.Threading;
 
 namespace StateMachine
 {
-    public interface IState
+    public interface IState<TTrigger> where TTrigger : Enum
     {
-        UniTask OnBeforeExit(CancellationToken cancellationToken);
-        UniTask OnExit(CancellationToken cancellationToken);
+        UniTask OnBeforeExit(TTrigger currentTrigger, TTrigger nextTrigger, CancellationToken cancellationToken);
+        UniTask OnExit(TTrigger currentTrigger, TTrigger nextTrigger, CancellationToken cancellationToken);
     }
 
-    public interface IPureState : IState
-    {
-        UniTask OnBeforeEnter(CancellationToken cancellationToken);
-        UniTask OnEnter(CancellationToken cancellationToken);
+    public interface IPureState<TTrigger> : IState<TTrigger> where TTrigger : Enum
+	{
+        UniTask OnBeforeEnter(TTrigger trigger, CancellationToken cancellationToken);
+        UniTask OnEnter(TTrigger trigger, CancellationToken cancellationToken);
     }
 
-    public interface IPayloadedState<in TPayload> : IState
-    {
-        UniTask OnBeforeEnter(TPayload payload, CancellationToken cancellationToken);
-        UniTask OnEnter(TPayload payload, CancellationToken cancellationToken);
+    public interface IPayloadedState<TTrigger, in TPayload> : IState<TTrigger> where TTrigger : Enum
+	{
+        UniTask OnBeforeEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken);
+        UniTask OnEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken);
     }
 }

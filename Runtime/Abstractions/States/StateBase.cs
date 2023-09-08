@@ -4,24 +4,24 @@ using System.Threading;
 
 namespace StateMachine
 {
-    public class StateBase : IPureState, IDisposable
+	public class StateBase<TTrigger> : IPureState<TTrigger>, IDisposable where TTrigger : Enum
     {
-        public virtual UniTask OnBeforeEnter(CancellationToken cancellationToken)
+        public virtual UniTask OnBeforeEnter(TTrigger trigger, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public virtual UniTask OnEnter(CancellationToken cancellationToken)
+        public virtual UniTask OnEnter(TTrigger trigger, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public virtual UniTask OnBeforeExit(CancellationToken cancellationToken)
+        public virtual UniTask OnBeforeExit(TTrigger currentTrigger, TTrigger nextTrigger, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public virtual UniTask OnExit(CancellationToken cancellationToken)
+        public virtual UniTask OnExit(TTrigger currentTrigger, TTrigger nextTrigger, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
@@ -29,24 +29,24 @@ namespace StateMachine
         public virtual void Dispose() { }
     }
 
-    public class StateBase<TPayload> : StateBase, IPayloadedState<TPayload>
+    public class StateBase<TTrigger, TPayload> : StateBase<TTrigger>, IPayloadedState<TTrigger, TPayload> where TTrigger : Enum
     {
-        public virtual UniTask OnBeforeEnter(TPayload payload, CancellationToken cancellationToken)
+        public virtual UniTask OnBeforeEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public virtual UniTask OnEnter(TPayload payload, CancellationToken cancellationToken)
+        public virtual UniTask OnEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public sealed override UniTask OnEnter(CancellationToken cancellationToken)
+        public sealed override UniTask OnEnter(TTrigger trigger, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public sealed override UniTask OnBeforeEnter(CancellationToken cancellationToken)
+        public sealed override UniTask OnBeforeEnter(TTrigger trigger, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
