@@ -205,7 +205,7 @@ namespace StateMachine
             // Notify the states that their states are going to change
             if (CurrentState != null)
             {
-				await CurrentState.OnBeforeExit(CurrentTrigger, trigger, cancellationToken);
+                await CurrentState.OnBeforeExit(CurrentTrigger, trigger, cancellationToken);
             }
             await payloadState.OnBeforeEnter(trigger, payload, cancellationToken);
 

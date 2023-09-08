@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace StateMachine
 {
-	public class StateBase<TTrigger> : IPureState<TTrigger>, IDisposable where TTrigger : Enum
+    public class StateBase<TTrigger> : IPureState<TTrigger>, IDisposable where TTrigger : Enum
     {
         public virtual UniTask OnBeforeEnter(TTrigger trigger, CancellationToken cancellationToken)
         {
