@@ -4,14 +4,16 @@ using System.Threading;
 
 namespace StateMachine
 {
-    public class StateBase<TTrigger> : IPureState<TTrigger>, IDisposable where TTrigger : Enum
+    public class StateBase<TTrigger, TPayload> : IPayloadedState<TTrigger, TPayload>, IDisposable
+        where TTrigger : Enum
+        where TPayload : IStatePayload
     {
-        public virtual UniTask OnBeforeEnter(TTrigger trigger, CancellationToken cancellationToken)
+        public virtual UniTask OnBeforeEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public virtual UniTask OnEnter(TTrigger trigger, CancellationToken cancellationToken)
+        public virtual UniTask OnEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
@@ -27,28 +29,5 @@ namespace StateMachine
         }
 
         public virtual void Dispose() { }
-    }
-
-    public class StateBase<TTrigger, TPayload> : StateBase<TTrigger>, IPayloadedState<TTrigger, TPayload> where TTrigger : Enum
-    {
-        public virtual UniTask OnBeforeEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
-        {
-            return UniTask.CompletedTask;
-        }
-
-        public virtual UniTask OnEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
-        {
-            return UniTask.CompletedTask;
-        }
-
-        public sealed override UniTask OnEnter(TTrigger trigger, CancellationToken cancellationToken)
-        {
-            return UniTask.CompletedTask;
-        }
-
-        public sealed override UniTask OnBeforeEnter(TTrigger trigger, CancellationToken cancellationToken)
-        {
-            return UniTask.CompletedTask;
-        }
     }
 }

@@ -38,7 +38,7 @@ namespace StateMachine
         /// </summary>
         /// <param name="trigger"></param>
         /// <param name="cancellationToken"></param>
-        UniTask Fire(TTrigger trigger, CancellationToken cancellationToken);
+        //UniTask Fire(TTrigger trigger, CancellationToken cancellationToken);
 
         /// <summary>
         /// Start transition to the new state with payload if state requires payload
@@ -47,7 +47,8 @@ namespace StateMachine
         /// <param name="payload"></param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TPayload"></typeparam>
-        UniTask Fire<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken);
+        UniTask Fire<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
+            where TPayload : IStatePayload;
 
         /// <summary>
         /// Adds a hook to the state machine that will be called on every state change.

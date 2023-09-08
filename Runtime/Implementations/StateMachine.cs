@@ -47,7 +47,7 @@ namespace StateMachine
         }
 
         /// <inheritdoc cref="IStateMachine{TTrigger}.Register{T}"/>
-        public StateMachine<TTrigger>.StateConfiguration Register<T>(TTrigger trigger) where T : IState<TTrigger>
+        public StateConfiguration Register<T>(TTrigger trigger) where T : IState<TTrigger>
         {
             _stateTypes[trigger] = typeof(T);
             return new StateConfiguration(this, trigger);
@@ -99,27 +99,14 @@ namespace StateMachine
         /// </summary>
         /// <param name="trigger"></param>
         /// <param name="cancellationToken"></param>
-        public async UniTask Fire(TTrigger trigger, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _semaphore.WaitAsync(cancellationToken);
-                await FireInternal(trigger, cancellationToken);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
+        //public async UniTask Fire(TTrigger trigger, CancellationToken cancellationToken)
+        //{
+        //    await Fire(trigger, default, cancellationToken);
+        //}
 
-        /// <summary>
-        /// Start transition to the new state with payload if state requires payload
-        /// </summary>
-        /// <param name="trigger"></param>
-        /// <param name="payload"></param>
-        /// <param name="cancellationToken"></param>
-        /// <typeparam name="TPayload"></typeparam>
+        /// <inheritdoc cref="IStateMachine{TTrigger}.Fire(TTrigger, IStatePayload, CancellationToken)"/>
         public async UniTask Fire<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
+            where TPayload : IStatePayload
         {
             await FireInternal(trigger, payload, cancellationToken);
         }
@@ -153,47 +140,9 @@ namespace StateMachine
                 _hooks.Remove(hook);
             }
         }
-        
-        private async UniTask Enter(TTrigger trigger, Type stateType, CancellationToken cancellationToken)
-        {
-            // Create a new scope
-            var newScope = _scopeManager.CreateScope();
-
-            // Create a new state
-            var state = _stateFactory.GetService(stateType);
-            var pureState = (IPureState<TTrigger>)state;
-
-            // Notify the states that their states are going to change
-            if (CurrentState != null)
-            {
-                await CurrentState.OnBeforeExit(CurrentTrigger, trigger, cancellationToken);
-            }
-            await pureState.OnBeforeEnter(trigger, cancellationToken);
-
-            // Exit the previous state
-            await ExitCurrentState(trigger, stateType, cancellationToken);
-
-            // Switch to the new scope and state
-            _scope = newScope;
-            CurrentState = state;
-            CurrentTrigger = trigger;
-
-            foreach (var stateMachineHook in _hooks)
-            {
-                await stateMachineHook.OnBeforeEnter(new HookEnterPayload(stateType), cancellationToken);
-            }
-            
-            await pureState.OnEnter(trigger, cancellationToken);
-
-            foreach (var stateMachineHook in _hooks)
-            {
-                await stateMachineHook.OnAfterEnter(new HookEnterPayload(stateType), cancellationToken);
-            }
-            
-            _onStateChanged?.Invoke(CurrentState);
-        }
 
         private async UniTask Enter<TPayload>(TTrigger trigger, Type stateType, TPayload payload, CancellationToken cancellationToken)
+            where TPayload : IStatePayload
         {
             // Create a new scope
             var newScope = _scopeManager.CreateScope();
@@ -258,18 +207,8 @@ namespace StateMachine
             }
         }
 
-        private async UniTask FireInternal(TTrigger trigger, CancellationToken cancellationToken)
-        {
-            var type = VerifyAndReturnStateType(trigger);
-
-            if (type != null)
-            {
-                await Enter(trigger, type, cancellationToken);
-            }
-        }
-
-        private async UniTask FireInternal<TPayload>(TTrigger trigger, TPayload payload,
-            CancellationToken cancellationToken)
+        private async UniTask FireInternal<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
+            where TPayload : IStatePayload
         {
             var type = VerifyAndReturnStateType(trigger);
 
