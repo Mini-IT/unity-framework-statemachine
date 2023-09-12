@@ -8,7 +8,7 @@ using MiniContainer;
 
 namespace StateMachine
 {
-	[UnityEngine.Scripting.Preserve]
+    [UnityEngine.Scripting.Preserve]
     public sealed class StateMachine<TTrigger> : IStateMachine<TTrigger> where TTrigger : Enum
     {
         private readonly Dictionary<TTrigger, Type> _stateTypes;
