@@ -8,7 +8,6 @@ using MiniContainer;
 
 namespace StateMachine
 {
-    [UnityEngine.Scripting.Preserve]
     public sealed class StateMachine<TTrigger> : IStateMachine<TTrigger> where TTrigger : Enum
     {
         private readonly Dictionary<TTrigger, Type> _stateTypes;
@@ -22,6 +21,7 @@ namespace StateMachine
         public IState<TTrigger> CurrentState { get; private set; }
         public TTrigger CurrentTrigger { get; private set; }
 
+        [UnityEngine.Scripting.Preserve]
         public StateMachine(IFactoryService<IState<TTrigger>> stateStateFactory, IScopeManager scopeManager)
         {
             _stateFactory = stateStateFactory;
