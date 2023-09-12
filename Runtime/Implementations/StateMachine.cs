@@ -8,6 +8,7 @@ using MiniContainer;
 
 namespace StateMachine
 {
+	[UnityEngine.Scripting.Preserve]
     public sealed class StateMachine<TTrigger> : IStateMachine<TTrigger> where TTrigger : Enum
     {
         private readonly Dictionary<TTrigger, Type> _stateTypes;
@@ -15,7 +16,6 @@ namespace StateMachine
         private readonly IFactoryService<IState<TTrigger>> _stateFactory;
         private readonly IScopeManager _scopeManager;
         private readonly HashSet<IStateMachineHook> _hooks = new HashSet<IStateMachineHook>();
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         
         private Action<IState<TTrigger>> _onStateChanged;
         private int _scope;
