@@ -58,11 +58,6 @@ namespace StateMachine
         {
             var configuration = new StateConfiguration(this, from);
 
-            if (to.Equals(from))
-            {
-                return configuration;
-            }
-
             if (!_transitions.TryGetValue(from, out var transitions))
             {
                 transitions = new HashSet<TTrigger>();
