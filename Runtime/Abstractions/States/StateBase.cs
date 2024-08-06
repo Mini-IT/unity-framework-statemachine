@@ -4,51 +4,30 @@ using System.Threading;
 
 namespace StateMachine
 {
-    public class StateBase : IPureState, IDisposable
+    public class StateBase<TTrigger, TPayload> : IPayloadedState<TTrigger, TPayload>, IDisposable
+        where TTrigger : Enum
+        where TPayload : IStatePayload
     {
-        public virtual UniTask OnBeforeEnter(CancellationToken cancellationToken)
+        public virtual UniTask OnBeforeEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public virtual UniTask OnEnter(CancellationToken cancellationToken)
+        public virtual UniTask OnEnter(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public virtual UniTask OnBeforeExit(CancellationToken cancellationToken)
+        public virtual UniTask OnBeforeExit(TTrigger currentTrigger, TTrigger nextTrigger, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
-        public virtual UniTask OnExit(CancellationToken cancellationToken)
+        public virtual UniTask OnExit(TTrigger currentTrigger, TTrigger nextTrigger, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }
 
         public virtual void Dispose() { }
-    }
-
-    public class StateBase<TPayload> : StateBase, IPayloadedState<TPayload>
-    {
-        public virtual UniTask OnBeforeEnter(TPayload payload, CancellationToken cancellationToken)
-        {
-            return UniTask.CompletedTask;
-        }
-
-        public virtual UniTask OnEnter(TPayload payload, CancellationToken cancellationToken)
-        {
-            return UniTask.CompletedTask;
-        }
-
-        public sealed override UniTask OnEnter(CancellationToken cancellationToken)
-        {
-            return UniTask.CompletedTask;
-        }
-
-        public sealed override UniTask OnBeforeEnter(CancellationToken cancellationToken)
-        {
-            return UniTask.CompletedTask;
-        }
     }
 }

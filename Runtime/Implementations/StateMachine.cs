@@ -12,17 +12,17 @@ namespace StateMachine
     {
         private readonly Dictionary<TTrigger, Type> _stateTypes;
         private readonly Dictionary<TTrigger, HashSet<TTrigger>> _transitions;
-        private readonly IFactoryService<IState> _stateFactory;
+        private readonly IFactoryService<IState<TTrigger>> _stateFactory;
         private readonly IScopeManager _scopeManager;
         private readonly HashSet<IStateMachineHook> _hooks = new HashSet<IStateMachineHook>();
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         
-        private Action<IState> _onStateChanged;
+        private Action<IState<TTrigger>> _onStateChanged;
         private int _scope;
-        public IState CurrentState { get; private set; }
+        public IState<TTrigger> CurrentState { get; private set; }
         public TTrigger CurrentTrigger { get; private set; }
 
-        public StateMachine(IFactoryService<IState> stateStateFactory, IScopeManager scopeManager)
+        [UnityEngine.Scripting.Preserve]
+        public StateMachine(IFactoryService<IState<TTrigger>> stateStateFactory, IScopeManager scopeManager)
         {
             _stateFactory = stateStateFactory;
             _scopeManager = scopeManager;
@@ -35,19 +35,19 @@ namespace StateMachine
             _scopeManager.ReleaseScope(_scope);
         }
 
-        public void SubscribeOnStateChanged(Action<IState> callback)
+        public void SubscribeOnStateChanged(Action<IState<TTrigger>> callback)
         {
             _onStateChanged -= callback;
             _onStateChanged += callback;
         }
 
-        public void UnsubscribeOnStateChanged(Action<IState> callback)
+        public void UnsubscribeOnStateChanged(Action<IState<TTrigger>> callback)
         {
             _onStateChanged -= callback;
         }
 
         /// <inheritdoc cref="IStateMachine{TTrigger}.Register{T}"/>
-        public StateMachine<TTrigger>.StateConfiguration Register<T>(TTrigger trigger) where T : IState
+        public StateConfiguration Register<T>(TTrigger trigger) where T : IState<TTrigger>
         {
             _stateTypes[trigger] = typeof(T);
             return new StateConfiguration(this, trigger);
@@ -57,11 +57,6 @@ namespace StateMachine
         public StateConfiguration AllowTransition(TTrigger from, TTrigger to)
         {
             var configuration = new StateConfiguration(this, from);
-
-            if (to.Equals(from))
-            {
-                return configuration;
-            }
 
             if (!_transitions.TryGetValue(from, out var transitions))
             {
@@ -99,27 +94,14 @@ namespace StateMachine
         /// </summary>
         /// <param name="trigger"></param>
         /// <param name="cancellationToken"></param>
-        public async UniTask Fire(TTrigger trigger, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _semaphore.WaitAsync(cancellationToken);
-                await FireInternal(trigger, cancellationToken);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
+        //public async UniTask Fire(TTrigger trigger, CancellationToken cancellationToken)
+        //{
+        //    await Fire(trigger, default, cancellationToken);
+        //}
 
-        /// <summary>
-        /// Start transition to the new state with payload if state requires payload
-        /// </summary>
-        /// <param name="trigger"></param>
-        /// <param name="payload"></param>
-        /// <param name="cancellationToken"></param>
-        /// <typeparam name="TPayload"></typeparam>
+        /// <inheritdoc cref="IStateMachine{TTrigger}.Fire(TTrigger, IStatePayload, CancellationToken)"/>
         public async UniTask Fire<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
+            where TPayload : IStatePayload
         {
             await FireInternal(trigger, payload, cancellationToken);
         }
@@ -153,64 +135,26 @@ namespace StateMachine
                 _hooks.Remove(hook);
             }
         }
-        
-        private async UniTask Enter(TTrigger trigger, Type stateType, CancellationToken cancellationToken)
-        {
-            // Create a new scope
-            var newScope = _scopeManager.CreateScope();
-
-            // Create a new state
-            var state = _stateFactory.GetService(stateType);
-            var pureState = (IPureState)state;
-
-            // Notify the states that their states are going to change
-            if (CurrentState != null)
-            {
-                await CurrentState.OnBeforeExit(cancellationToken);
-            }
-            await pureState.OnBeforeEnter(cancellationToken);
-
-            // Exit the previous state
-            await ExitCurrentState(stateType, cancellationToken);
-
-            // Switch to the new scope and state
-            _scope = newScope;
-            CurrentState = state;
-            CurrentTrigger = trigger;
-
-            foreach (var stateMachineHook in _hooks)
-            {
-                await stateMachineHook.OnBeforeEnter(new HookEnterPayload(stateType), cancellationToken);
-            }
-            
-            await pureState.OnEnter(cancellationToken);
-
-            foreach (var stateMachineHook in _hooks)
-            {
-                await stateMachineHook.OnAfterEnter(new HookEnterPayload(stateType), cancellationToken);
-            }
-            
-            _onStateChanged?.Invoke(CurrentState);
-        }
 
         private async UniTask Enter<TPayload>(TTrigger trigger, Type stateType, TPayload payload, CancellationToken cancellationToken)
+            where TPayload : IStatePayload
         {
             // Create a new scope
             var newScope = _scopeManager.CreateScope();
 
             // Create a new state
             var state = _stateFactory.GetService(stateType);
-            var payloadState = (IPayloadedState<TPayload>)state;
+            var payloadState = (IPayloadedState<TTrigger, TPayload>)state;
 
             // Notify the states that their states are going to change
             if (CurrentState != null)
             {
-                await CurrentState.OnBeforeExit(cancellationToken);
+                await CurrentState.OnBeforeExit(CurrentTrigger, trigger, cancellationToken);
             }
-            await payloadState.OnBeforeEnter(payload, cancellationToken);
+            await payloadState.OnBeforeEnter(trigger, payload, cancellationToken);
 
             // Exit the previous state
-            await ExitCurrentState(stateType, cancellationToken);
+            await ExitCurrentState(trigger, stateType, cancellationToken);
 
             // Switch to the new scope and state
             _scope = newScope;
@@ -222,7 +166,7 @@ namespace StateMachine
                 await stateMachineHook.OnBeforeEnter(new HookEnterPayload(stateType), cancellationToken);
             }
             
-            await payloadState.OnEnter(payload, cancellationToken);
+            await payloadState.OnEnter(trigger, payload, cancellationToken);
 
             foreach (var stateMachineHook in _hooks)
             {
@@ -232,7 +176,7 @@ namespace StateMachine
             _onStateChanged?.Invoke(CurrentState);
         }
 
-        private async UniTask ExitCurrentState(Type stateType, CancellationToken cancellationToken)
+        private async UniTask ExitCurrentState(TTrigger trigger, Type stateType, CancellationToken cancellationToken)
         {
             if (CurrentState != null)
             {            
@@ -242,7 +186,7 @@ namespace StateMachine
                         cancellationToken);
                 }
 
-                await CurrentState.OnExit(cancellationToken);
+                await CurrentState.OnExit(CurrentTrigger, trigger, cancellationToken);
                 
                 foreach (var stateMachineHook in _hooks)
                 {
@@ -258,18 +202,8 @@ namespace StateMachine
             }
         }
 
-        private async UniTask FireInternal(TTrigger trigger, CancellationToken cancellationToken)
-        {
-            var type = VerifyAndReturnStateType(trigger);
-
-            if (type != null)
-            {
-                await Enter(trigger, type, cancellationToken);
-            }
-        }
-
-        private async UniTask FireInternal<TPayload>(TTrigger trigger, TPayload payload,
-            CancellationToken cancellationToken)
+        private async UniTask FireInternal<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
+            where TPayload : IStatePayload
         {
             var type = VerifyAndReturnStateType(trigger);
 

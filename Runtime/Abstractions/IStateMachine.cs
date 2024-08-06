@@ -6,18 +6,18 @@ namespace StateMachine
 {
     public interface IStateMachine<TTrigger> : IDisposable where TTrigger : Enum
     {
-        IState CurrentState { get; }
+        IState<TTrigger> CurrentState { get; }
         TTrigger CurrentTrigger { get; }
 
-        void SubscribeOnStateChanged(Action<IState> callback);
-        void UnsubscribeOnStateChanged(Action<IState> callback);
+        void SubscribeOnStateChanged(Action<IState<TTrigger>> callback);
+        void UnsubscribeOnStateChanged(Action<IState<TTrigger>> callback);
 
         /// <summary>
         /// Rigister a new state
         /// </summary>
         /// <typeparam name="T">State type</typeparam>
         /// <returns></returns>
-        StateMachine<TTrigger>.StateConfiguration Register<T>(TTrigger trigger) where T : IState;
+        StateMachine<TTrigger>.StateConfiguration Register<T>(TTrigger trigger) where T : IState<TTrigger>;
 
         /// <summary>
         /// Registers a transision from one state to another
@@ -38,7 +38,7 @@ namespace StateMachine
         /// </summary>
         /// <param name="trigger"></param>
         /// <param name="cancellationToken"></param>
-        UniTask Fire(TTrigger trigger, CancellationToken cancellationToken);
+        //UniTask Fire(TTrigger trigger, CancellationToken cancellationToken);
 
         /// <summary>
         /// Start transition to the new state with payload if state requires payload
@@ -47,7 +47,8 @@ namespace StateMachine
         /// <param name="payload"></param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TPayload"></typeparam>
-        UniTask Fire<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken);
+        UniTask Fire<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
+            where TPayload : IStatePayload;
 
         /// <summary>
         /// Adds a hook to the state machine that will be called on every state change.
