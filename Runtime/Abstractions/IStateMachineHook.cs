@@ -13,7 +13,7 @@ namespace StateMachine
         UniTask OnAfterExit(HookExitPayload payload, CancellationToken cancellationToken);
     }
     
-    public interface IStateMachineHook<T> : IStateMachineHook where T : IState
+    public interface IStateMachineHook<T, TTrigger> : IStateMachineHook where T : IState<TTrigger> where TTrigger : Enum
     {
     }
 }

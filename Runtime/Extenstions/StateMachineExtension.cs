@@ -7,7 +7,7 @@ namespace StateMachine
     {
         public static void RegisterStateMachine<TTrigger>(this IBaseDIService diService, IContainer container) where TTrigger : Enum
         {
-            diService.RegisterFactory<IState>(container);
+            diService.RegisterFactory<IState<TTrigger>>(container);
             diService.Register<IStateMachine<TTrigger>, StateMachine<TTrigger>>(ServiceLifeTime.Transient);
         }
     }
