@@ -80,7 +80,7 @@ namespace StateMachine
 
             foreach (var trigger in to)
             {
-                if (!to.Equals(from))
+                if (!trigger.Equals(from))
                 {
                     transitions.Add(trigger);
                 }
