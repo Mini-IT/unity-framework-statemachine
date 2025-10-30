@@ -224,41 +224,21 @@ namespace StateMachine
 
             if (CurrentState != null)
             {
-                // Check if this transitions is allowed
-
-                // TODO: optimize the search
-                var currentStateType = CurrentState.GetType();
-                TTrigger currentStateTrigger = default;
-                bool found = false;
-                foreach (var pair in _stateTypes)
+                if (!_transitions.TryGetValue(CurrentTrigger, out var transitions))
                 {
-                    if (pair.Value == currentStateType)
-                    {
-                        currentStateTrigger = pair.Key;
-                        found = true;
-                        break;
-                    }
+                    Errors.StateMachineException($"No allowed transitions from current state - {CurrentTrigger}");
                 }
 
-                if (!found || !_transitions.TryGetValue(currentStateTrigger, out var list))
+                if (!transitions.Contains(trigger))
                 {
-                    Errors.StateMachineException(
-                        $"State Machine '{GetType().Name}' - no transition is allowed from the current state '{currentStateType.Name}'");
-                    return null;
-                }
-
-                if (!list.Contains(trigger))
-                {
-                    Errors.StateMachineException(
-                        $"State Machine '{GetType().Name}' - transition from '{currentStateTrigger}' to '{trigger}' is not allowed");
-                    return null;
+                    Errors.StateMachineException($"Transition from current state - {CurrentTrigger}, to - {trigger}: not allowed");
                 }
             }
 
             return nextStateType;
         }
 
-        public readonly struct StateConfiguration
+        public readonly ref struct StateConfiguration
         {
             private readonly IStateMachine<TTrigger> _stateMachine;
             private readonly TTrigger _trigger;
