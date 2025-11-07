@@ -218,31 +218,15 @@ namespace StateMachine
             {
                 // Check if this transitions is allowed
 
-                // TODO: optimize the search
-                var currentStateType = CurrentState.GetType();
-                TTrigger currentStateTrigger = default;
-                bool found = false;
-                foreach (var pair in _stateTypes)
+                if (!_transitions.TryGetValue(CurrentTrigger, out var transitions))
                 {
-                    if (pair.Value == currentStateType)
-                    {
-                        currentStateTrigger = pair.Key;
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found || !_transitions.TryGetValue(currentStateTrigger, out var list))
-                {
-                    Errors.StateMachineException(
-                        $"State Machine '{GetType().Name}' - no transition is allowed from the current state '{currentStateType.Name}'");
+                    Errors.StateMachineException($"State Machine '{GetType().Name}' - No allowed transitions from current state - {CurrentTrigger}");
                     return null;
                 }
 
-                if (!list.Contains(trigger))
+                if (!transitions.Contains(trigger))
                 {
-                    Errors.StateMachineException(
-                        $"State Machine '{GetType().Name}' - transition from '{currentStateTrigger}' to '{trigger}' is not allowed");
+                    Errors.StateMachineException($"State Machine '{GetType().Name}' - Transition from current state - '{CurrentTrigger}', to '{trigger}' is not allowed");
                     return null;
                 }
             }
@@ -250,7 +234,7 @@ namespace StateMachine
             return nextStateType;
         }
 
-        public readonly struct StateConfiguration
+        public readonly ref struct StateConfiguration
         {
             private readonly IStateMachine<TTrigger> _stateMachine;
             private readonly TTrigger _trigger;
