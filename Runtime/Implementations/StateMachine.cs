@@ -108,14 +108,11 @@ namespace StateMachine
         /// <exception cref="InvalidOperationException">Will be thrown if such already attached. Duplications not allowed</exception>
         public void AddHook(IStateMachineHook hook)
         {
-            if (_hooks.Contains(hook))
+            if (!_hooks.Add(hook))
             {
                 throw new InvalidOperationException(
                     $"This hook already attached to the state machine {hook.GetType()}");
-
             }
-
-            _hooks.Add(hook);
         }
 
         /// <summary>
