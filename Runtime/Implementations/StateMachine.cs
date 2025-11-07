@@ -15,7 +15,7 @@ namespace StateMachine
         private readonly IFactoryService<IState<TTrigger>> _stateFactory;
         private readonly IScopeManager _scopeManager;
         private readonly HashSet<IStateMachineHook> _hooks = new HashSet<IStateMachineHook>();
-        
+
         private Action<IState<TTrigger>> _onStateChanged;
         private int _scope;
         public IState<TTrigger> CurrentState { get; private set; }
@@ -93,13 +93,8 @@ namespace StateMachine
         /// Start transition to the new state
         /// </summary>
         /// <param name="trigger"></param>
+        /// <param name="payload"></param>
         /// <param name="cancellationToken"></param>
-        //public async UniTask Fire(TTrigger trigger, CancellationToken cancellationToken)
-        //{
-        //    await Fire(trigger, default, cancellationToken);
-        //}
-
-        /// <inheritdoc cref="IStateMachine{TTrigger}.Fire(TTrigger, IStatePayload, CancellationToken)"/>
         public async UniTask Fire<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
             where TPayload : IStatePayload
         {
@@ -117,7 +112,7 @@ namespace StateMachine
             {
                 throw new InvalidOperationException(
                     $"This hook already attached to the state machine {hook.GetType()}");
-                
+
             }
 
             _hooks.Add(hook);
@@ -165,7 +160,7 @@ namespace StateMachine
             {
                 await stateMachineHook.OnBeforeEnter(new HookEnterPayload(stateType), cancellationToken);
             }
-            
+
             await payloadState.OnEnter(trigger, payload, cancellationToken);
 
             foreach (var stateMachineHook in _hooks)
@@ -179,7 +174,7 @@ namespace StateMachine
         private async UniTask ExitCurrentState(TTrigger trigger, Type stateType, CancellationToken cancellationToken)
         {
             if (CurrentState != null)
-            {            
+            {
                 foreach (var stateMachineHook in _hooks)
                 {
                     await stateMachineHook.OnBeforeExit(new HookExitPayload(CurrentState.GetType(), stateType),
@@ -187,7 +182,7 @@ namespace StateMachine
                 }
 
                 await CurrentState.OnExit(CurrentTrigger, trigger, cancellationToken);
-                
+
                 foreach (var stateMachineHook in _hooks)
                 {
                     await stateMachineHook.OnAfterExit(new HookExitPayload(CurrentState.GetType(), stateType),
