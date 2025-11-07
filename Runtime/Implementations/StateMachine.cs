@@ -224,14 +224,17 @@ namespace StateMachine
 
             if (CurrentState != null)
             {
+                // Check if this transitions is allowed
                 if (!_transitions.TryGetValue(CurrentTrigger, out var transitions))
                 {
                     Errors.StateMachineException($"No allowed transitions from current state - {CurrentTrigger}");
+                    return null;
                 }
 
                 if (!transitions.Contains(trigger))
                 {
                     Errors.StateMachineException($"Transition from current state - {CurrentTrigger}, to - {trigger}: not allowed");
+                    return null;
                 }
             }
 
