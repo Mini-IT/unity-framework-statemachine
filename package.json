@@ -1,6 +1,6 @@
 {
 	"name": "com.miniit.framework.statemachine",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"dependencies": {
 		"com.miniit.dicontainer": "2.0.0",
 		"com.cysharp.unitask": "2.3.0"
