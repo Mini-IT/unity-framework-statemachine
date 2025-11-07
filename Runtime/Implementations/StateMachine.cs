@@ -93,13 +93,8 @@ namespace StateMachine
         /// Start transition to the new state
         /// </summary>
         /// <param name="trigger"></param>
+        /// <param name="payload"></param>
         /// <param name="cancellationToken"></param>
-        //public async UniTask Fire(TTrigger trigger, CancellationToken cancellationToken)
-        //{
-        //    await Fire(trigger, default, cancellationToken);
-        //}
-
-        /// <inheritdoc cref="IStateMachine{TTrigger}.Fire(TTrigger, IStatePayload, CancellationToken)"/>
         public async UniTask Fire<TPayload>(TTrigger trigger, TPayload payload, CancellationToken cancellationToken)
             where TPayload : IStatePayload
         {
@@ -113,14 +108,11 @@ namespace StateMachine
         /// <exception cref="InvalidOperationException">Will be thrown if such already attached. Duplications not allowed</exception>
         public void AddHook(IStateMachineHook hook)
         {
-            if (_hooks.Contains(hook))
+            if (!_hooks.Add(hook))
             {
                 throw new InvalidOperationException(
                     $"This hook already attached to the state machine {hook.GetType()}");
-
             }
-
-            _hooks.Add(hook);
         }
 
         /// <summary>
